@@ -1,4 +1,10 @@
 package tda.interfaces;
 
-public interface IStack {
+public interface IStack<T> {
+    void push(T element);
+    T pop();
+    T peek();
+    boolean isEmpty();
+    int size();
+    boolean contains(T element);
 }
