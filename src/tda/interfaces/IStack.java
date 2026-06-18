@@ -6,5 +6,4 @@ public interface IStack<T> {
     T peek();
     boolean isEmpty();
     int size();
-    boolean contains(T element);
 }
