@@ -60,10 +60,11 @@ public class Menu {
             System.out.println("1. Alta de estudiante");
             System.out.println("2. Baja de estudiante");
             System.out.println("3. Buscar estudiante por legajo");
-            System.out.println("4. Listar estudiantes ordenados (AVL inorden)");
-            System.out.println("5. Mostrar altura del AVL");
-            System.out.println("6. Mostrar factor de equilibrio de un nodo");
-            System.out.println("7. Ver registros en Btree");
+            System.out.println("4. Listar estudiantes ordenados por legajo");
+            System.out.println("5. Ver nivel de organizacion del registro");
+            System.out.println("6. Ver factor de equilibrio de un estudiante");
+            System.out.println("7. Listar todos los legajos del sistema");
+            System.out.println("8. Registrar materia aprobada por un estudiante");
             System.out.println("0. Volver");
             System.out.print("Seleccione: ");
             op = leerInt();
@@ -96,6 +97,13 @@ public class Menu {
                 case 7:
                     sistema.mostrarRegistrosBtree();
                     break;
+                case 8:
+                    System.out.print("Legajo: ");
+                    int legApr = leerInt();
+                    System.out.print("Codigo de materia aprobada: ");
+                    String codApr = scanner.nextLine();
+                    sistema.registrarAprobacion(legApr, codApr);
+                    break;
                 case 0:
                     break;
                 default:
@@ -113,7 +121,7 @@ public class Menu {
             System.out.println("1. Alta de materia");
             System.out.println("2. Baja de materia");
             System.out.println("3. Buscar materia por codigo");
-            System.out.println("4. Listar materias ordenadas (BST inorden)");
+            System.out.println("4. Listar materias en orden alfabetico");
             System.out.println("5. Asociar profesor a materia");
             System.out.println("6. Ver profesor de una materia");
             System.out.println("0. Volver");
@@ -162,12 +170,12 @@ public class Menu {
     private void menuEstructura() {
         int op = -1;
         while (op != 0) {
-            System.out.println("\n--- ESTRUCTURA ACADEMICA (Arbol Generico) ---");
-            System.out.println("1. Crear carrera (raiz)");
+            System.out.println("\n--- ESTRUCTURA ACADEMICA ---");
+            System.out.println("1. Crear carrera");
             System.out.println("2. Agregar anio a carrera");
             System.out.println("3. Agregar materia a un anio");
-            System.out.println("4. Recorrido en profundidad (DFS)");
-            System.out.println("5. Recorrido en amplitud (BFS)");
+            System.out.println("4. Ver estructura completa (en profundidad)");
+            System.out.println("5. Ver estructura nivel por nivel");
             System.out.println("0. Volver");
             System.out.print("Seleccione: ");
             op = leerInt();
@@ -260,11 +268,11 @@ public class Menu {
     private void menuCorrelatividades() {
         int op = -1;
         while (op != 0) {
-            System.out.println("\n--- CORRELATIVIDADES (Grafo dirigido) ---");
-            System.out.println("1. Agregar materia como vertice");
-            System.out.println("2. Agregar correlatividad (arista)");
-            System.out.println("3. Recorrer con BFS");
-            System.out.println("4. Recorrer con DFS");
+            System.out.println("\n--- CORRELATIVIDADES ---");
+            System.out.println("1. Agregar materia a la red de correlatividades");
+            System.out.println("2. Agregar relacion entre materias");
+            System.out.println("3. Explorar correlativas nivel por nivel");
+            System.out.println("4. Explorar correlativas en profundidad");
             System.out.println("5. Verificar si una materia habilita a otra");
             System.out.println("0. Volver");
             System.out.print("Seleccione: ");
@@ -309,7 +317,7 @@ public class Menu {
     private void menuHistorial() {
         int op = -1;
         while (op != 0) {
-            System.out.println("\n--- HISTORIAL DE OPERACIONES (Stack) ---");
+            System.out.println("\n--- HISTORIAL DE OPERACIONES ---");
             System.out.println("1. Ver historial completo");
             System.out.println("2. Deshacer ultima operacion");
             System.out.println("0. Volver");
@@ -330,9 +338,12 @@ public class Menu {
         int op = -1;
         while (op != 0) {
             System.out.println("\n--- CONSULTAS COMPLEJAS ---");
-            System.out.println("1. Verificar si un estudiante existe (Dictionary + AVL)");
-            System.out.println("2. Verificar habilitacion de materia (BST + Graph)");
-            System.out.println("3. Buscar legajo en Btree");
+            System.out.println("1. Buscar estudiante en el sistema");
+            System.out.println("2. Verificar si puedo cursar una materia");// [Dictionary + Bst + Graph + aprobadas]
+            System.out.println("3. Buscar legajo en el registro");
+            System.out.println("4. Camino de correlatividades entre dos materias");// [Graph + Queue + Stack + Bst + Dictionary]
+            System.out.println("5. Atender siguiente alumno prioritario y registrar");//[PriorityQueue + Dictionary + Stack]
+            System.out.println("6. Deshacer ultima operacion y ver estado de indices");//[Stack + Avl + Bst + Btree]
             System.out.println("0. Volver");
             System.out.print("Seleccione: ");
             op = leerInt();
@@ -349,8 +360,21 @@ public class Menu {
                     sistema.puedesCursarMateria(leg, cod);
                     break;
                 case 3:
-                    System.out.print("Legajo a buscar en Btree: ");
+                    System.out.print("Legajo a buscar en el registro: ");
                     sistema.buscarEnBtree(leerInt());
+                    break;
+                case 4:
+                    System.out.print("Materia origen: ");
+                    String cOrigen = scanner.nextLine();
+                    System.out.print("Materia destino: ");
+                    String cDestino = scanner.nextLine();
+                    sistema.caminoCorrelatividades(cOrigen, cDestino);
+                    break;
+                case 5:
+                    sistema.atenderYRegistrar();
+                    break;
+                case 6:
+                    sistema.deshacerYMostrarEstado();
                     break;
                 case 0:
                     break;

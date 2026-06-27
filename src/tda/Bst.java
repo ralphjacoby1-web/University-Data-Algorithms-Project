@@ -4,92 +4,92 @@ import tda.interfaces.IBst;
 
 public class Bst<T extends Comparable<T>> implements IBst<T> {
 
-    private Node root;
+    private Nodo raiz;
 
-    private class Node {
-        T element;
-        Node left, right;
+    private class Nodo {
+        T elemento;
+        Nodo izquierda, derecha;
 
-        Node(T element) {
-            this.element = element;
+        Nodo(T elemento) {
+            this.elemento = elemento;
         }
     }
 
     @Override
-    public void insert(T element) {
-        if (element == null) throw new IllegalArgumentException();
-        root = insertRec(root, element);
+    public void insertar(T elemento) {
+        if (elemento == null) throw new IllegalArgumentException();
+        raiz = insertarRec(raiz, elemento);
     }
 
-    private Node insertRec(Node node, T element) {
-        if (node == null) return new Node(element);
-        int cmp = element.compareTo(node.element);
-        if (cmp < 0) node.left = insertRec(node.left, element);
-        else if (cmp > 0) node.right = insertRec(node.right, element);
-        return node;
+    private Nodo insertarRec(Nodo nodo, T elemento) {
+        if (nodo == null) return new Nodo(elemento);
+        int cmp = elemento.compareTo(nodo.elemento);
+        if (cmp < 0) nodo.izquierda = insertarRec(nodo.izquierda, elemento);
+        else if (cmp > 0) nodo.derecha = insertarRec(nodo.derecha, elemento);
+        return nodo;
     }
 
     @Override
-    public void delete(T element) {
-        root = deleteRec(root, element);
+    public void eliminar(T elemento) {
+        raiz = eliminarRec(raiz, elemento);
     }
 
-    private Node deleteRec(Node node, T element) {
-        if (node == null) return null;
-        int cmp = element.compareTo(node.element);
-        if (cmp < 0) node.left = deleteRec(node.left, element);
-        else if (cmp > 0) node.right = deleteRec(node.right, element);
+    private Nodo eliminarRec(Nodo nodo, T elemento) {
+        if (nodo == null) return null;
+        int cmp = elemento.compareTo(nodo.elemento);
+        if (cmp < 0) nodo.izquierda = eliminarRec(nodo.izquierda, elemento);
+        else if (cmp > 0) nodo.derecha = eliminarRec(nodo.derecha, elemento);
         else {
-            if (node.left == null) return node.right;
-            if (node.right == null) return node.left;
-            Node successor = minNode(node.right);
-            node.element = successor.element;
-            node.right = deleteRec(node.right, successor.element);
+            if (nodo.izquierda == null) return nodo.derecha;
+            if (nodo.derecha == null) return nodo.izquierda;
+            Nodo sucesor = nodoMinimo(nodo.derecha);
+            nodo.elemento = sucesor.elemento;
+            nodo.derecha = eliminarRec(nodo.derecha, sucesor.elemento);
         }
-        return node;
+        return nodo;
     }
 
     @Override
-    public boolean search(T element) {
-        return searchRec(root, element);
+    public boolean buscar(T elemento) {
+        return buscarRec(raiz, elemento);
     }
 
-    private boolean searchRec(Node node, T element) {
-        if (node == null) return false;
-        int cmp = element.compareTo(node.element);
+    private boolean buscarRec(Nodo nodo, T elemento) {
+        if (nodo == null) return false;
+        int cmp = elemento.compareTo(nodo.elemento);
         if (cmp == 0) return true;
-        return cmp < 0 ? searchRec(node.left, element) : searchRec(node.right, element);
+        return cmp < 0 ? buscarRec(nodo.izquierda, elemento) : buscarRec(nodo.derecha, elemento);
     }
 
     @Override
-    public void inOrder() {
-        inOrderRec(root);
+    public void enOrden() {
+        enOrdenRec(raiz);
         System.out.println();
     }
 
-    private void inOrderRec(Node node) {
-        if (node == null) return;
-        inOrderRec(node.left);
-        System.out.print(node.element + "  ");
-        inOrderRec(node.right);
+    private void enOrdenRec(Nodo nodo) {
+        if (nodo == null) return;
+        enOrdenRec(nodo.izquierda);
+        System.out.print(nodo.elemento + "  ");
+        enOrdenRec(nodo.derecha);
     }
 
     @Override
     public T max() {
-        if (root == null) return null;
-        Node n = root;
-        while (n.right != null) n = n.right;
-        return n.element;
+        if (raiz == null) return null;
+        Nodo n = raiz;
+        while (n.derecha != null) n = n.derecha;
+        return n.elemento;
     }
 
     @Override
     public T min() {
-        if (root == null) return null;
-        return minNode(root).element;
+        if (raiz == null) return null;
+        return nodoMinimo(raiz).elemento;
     }
 
-    private Node minNode(Node node) {
-        while (node.left != null) node = node.left;
-        return node;
+    private Nodo nodoMinimo(Nodo nodo) {
+        while (nodo.izquierda != null) nodo = nodo.izquierda;
+        return nodo;
     }
 }

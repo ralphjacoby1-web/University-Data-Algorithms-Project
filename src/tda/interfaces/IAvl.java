@@ -1,10 +1,10 @@
 package tda.interfaces;
 
 public interface IAvl<T extends Comparable<T>> {
-    void insert(T element);
-    void delete(T element);
-    boolean search(T element);
-    void inOrder();
+    void insertar(T elemento);
+    void eliminar(T elemento);
+    boolean buscar(T elemento);
+    void enOrden();
     T max();
     T min();
 }

@@ -5,21 +5,24 @@ import tda.*;
 
 public class UniversitySystem {
 
-    private Avl<Student>             estudiantesAvl;
+    private Avl<Student>                 estudiantesAvl;
     private Dictionary<Integer, Student> estudiantesDic;
-    private Bst<Subject>             materiasBst;
-    private Btree                    registroBtree;
-    private Queue<Student>           colaComun;
-    private PriorityQueue<Student>   colaPrioritaria;
-    private Stack<Operation>         historial;
-    private GenericTree<String>      estructuraAcademica;
-    private Graph                    correlatividades;
-    private Dictionary<String, String> profesores;
+    private Bst<Subject>                 materiasBst;
+    private Dictionary<String, Subject>  materiasDic;    // lookup directo de materia por codigo
+    private Btree                        registroBtree;
+    private Queue<Student>               colaComun;
+    private PriorityQueue<Student>       colaPrioritaria;
+    private Stack<Operation>             historial;
+    private GenericTree<String>          estructuraAcademica;
+    private Graph                        correlatividades;
+    private Dictionary<String, String>   profesores;
+    private ConsultasService             consultas;
 
     public UniversitySystem() {
         estudiantesAvl      = new Avl<>();
         estudiantesDic      = new Dictionary<>();
         materiasBst         = new Bst<>();
+        materiasDic         = new Dictionary<>();
         registroBtree       = new Btree();
         colaComun           = new Queue<>();
         colaPrioritaria     = new PriorityQueue<>();
@@ -27,6 +30,10 @@ public class UniversitySystem {
         estructuraAcademica = new GenericTree<>();
         correlatividades    = new Graph();
         profesores          = new Dictionary<>();
+        consultas = new ConsultasService(
+                estudiantesDic, materiasBst, materiasDic,
+                correlatividades, colaPrioritaria, historial,
+                estudiantesAvl, registroBtree);
     }
 
     // ── Estudiantes ──────────────────────────────────────────────────────────
@@ -37,9 +44,9 @@ public class UniversitySystem {
             return;
         }
         Student s = new Student(legajo, nombre);
-        estudiantesAvl.insert(s);
+        estudiantesAvl.insertar(s);
         estudiantesDic.put(legajo, s);
-        registroBtree.insert(legajo);
+        registroBtree.insertar(legajo);
         historial.push(new Operation("ALTA_ESTUDIANTE", "Legajo: " + legajo + " - " + nombre));
         System.out.println("Estudiante registrado: " + s);
     }
@@ -47,7 +54,7 @@ public class UniversitySystem {
     public void bajaEstudiante(int legajo) {
         Student s = estudiantesDic.get(legajo);
         if (s == null) { System.out.println("Estudiante no encontrado."); return; }
-        estudiantesAvl.delete(s);
+        estudiantesAvl.eliminar(s);
         estudiantesDic.remove(legajo);
         historial.push(new Operation("BAJA_ESTUDIANTE", "Legajo: " + legajo + " - " + s.getNombre()));
         System.out.println("Estudiante eliminado: " + s);
@@ -61,25 +68,38 @@ public class UniversitySystem {
 
     public void listarEstudiantes() {
         System.out.print("Estudiantes (por legajo): ");
-        estudiantesAvl.inOrder();
+        estudiantesAvl.enOrden();
     }
 
     public void mostrarAlturaAvl() {
-        System.out.println("Altura del AVL: " + estudiantesAvl.getHeight());
+        System.out.println("Nivel de organizacion del registro: " + estudiantesAvl.obtenerAltura());
     }
 
     public void mostrarFactorEquilibrio(int legajo) {
         Student s = estudiantesDic.get(legajo);
         if (s == null) { System.out.println("Estudiante no encontrado."); return; }
         System.out.println("Factor de equilibrio (legajo " + legajo + "): "
-                + estudiantesAvl.getBalanceFactor(s));
+                + estudiantesAvl.obtenerFactorBalance(s));
+    }
+
+    public void registrarAprobacion(int legajo, String codigoMateria) {
+        Student s = estudiantesDic.get(legajo);
+        if (s == null) { System.out.println("Estudiante no encontrado."); return; }
+        if (!materiasBst.buscar(new Subject(codigoMateria, ""))) {
+            System.out.println("Materia no encontrada en el sistema.");
+            return;
+        }
+        s.aprobarMateria(codigoMateria);
+        historial.push(new Operation("APROBACION", "Legajo " + legajo + " aprobo " + codigoMateria));
+        System.out.println("Materia " + codigoMateria + " registrada como aprobada para " + s);
     }
 
     // ── Materias ─────────────────────────────────────────────────────────────
 
     public void altaMateria(String codigo, String nombre) {
         Subject sub = new Subject(codigo, nombre);
-        materiasBst.insert(sub);
+        materiasBst.insertar(sub);
+        materiasDic.put(codigo, sub);
         correlatividades.addVertex(codigo);
         historial.push(new Operation("ALTA_MATERIA", codigo + " - " + nombre));
         System.out.println("Materia registrada: " + sub);
@@ -87,20 +107,21 @@ public class UniversitySystem {
 
     public void bajaMateria(String codigo) {
         Subject sub = new Subject(codigo, "");
-        if (!materiasBst.search(sub)) { System.out.println("Materia no encontrada."); return; }
-        materiasBst.delete(sub);
+        if (!materiasBst.buscar(sub)) { System.out.println("Materia no encontrada."); return; }
+        materiasBst.eliminar(sub);
+        materiasDic.remove(codigo);
         historial.push(new Operation("BAJA_MATERIA", "Codigo: " + codigo));
         System.out.println("Materia eliminada: " + codigo);
     }
 
     public void buscarMateria(String codigo) {
-        boolean found = materiasBst.search(new Subject(codigo, ""));
+        boolean found = materiasBst.buscar(new Subject(codigo, ""));
         System.out.println(found ? "Materia encontrada: " + codigo : "Materia no encontrada.");
     }
 
     public void listarMaterias() {
         System.out.print("Materias (orden alfabetico): ");
-        materiasBst.inOrder();
+        materiasBst.enOrden();
     }
 
     public void asociarProfesor(String codigoMateria, String nombreProfesor) {
@@ -115,7 +136,7 @@ public class UniversitySystem {
         else System.out.println("Sin profesor asignado para " + codigoMateria);
     }
 
-    // ── Estructura academica (GenericTree) ───────────────────────────────────
+    // ── Estructura academica ─────────────────────────────────────────────────
 
     public void crearCarrera(String nombre) {
         estructuraAcademica.addRoot(nombre);
@@ -133,12 +154,12 @@ public class UniversitySystem {
     }
 
     public void recorridoProfundidad() {
-        System.out.println("Recorrido en profundidad (DFS):");
+        System.out.println("Recorrido en profundidad:");
         estructuraAcademica.dfs();
     }
 
     public void recorridoAmplitud() {
-        System.out.print("Recorrido en amplitud (BFS): ");
+        System.out.print("Recorrido nivel por nivel: ");
         estructuraAcademica.bfs();
     }
 
@@ -188,7 +209,7 @@ public class UniversitySystem {
         System.out.println("Cola prioritaria: " + (colaPrioritaria.estaVacio() ? "vacia" : colaPrioritaria.verTamanio() + " alumnos"));
     }
 
-    // ── Correlatividades (Graph) ──────────────────────────────────────────────
+    // ── Correlatividades ─────────────────────────────────────────────────────
 
     public void agregarMateriaVertice(String codigo) {
         correlatividades.addVertex(codigo);
@@ -216,7 +237,7 @@ public class UniversitySystem {
                 : origen + " NO habilita a " + destino);
     }
 
-    // ── Historial / Stack ────────────────────────────────────────────────────
+    // ── Historial ────────────────────────────────────────────────────────────
 
     public void deshacerUltimaOperacion() {
         if (historial.isEmpty()) { System.out.println("No hay operaciones en el historial."); return; }
@@ -239,35 +260,44 @@ public class UniversitySystem {
     // ── BTree ────────────────────────────────────────────────────────────────
 
     public void mostrarRegistrosBtree() {
-        System.out.print("Legajos en Btree (orden): ");
-        registroBtree.inOrder();
+        System.out.print("Legajos registrados (orden): ");
+        registroBtree.enOrden();
     }
 
     public void buscarEnBtree(int legajo) {
-        boolean found = registroBtree.search(legajo);
-        System.out.println(found ? "Legajo " + legajo + " encontrado en Btree." : "Legajo no encontrado en Btree.");
+        boolean found = registroBtree.buscar(legajo);
+        System.out.println(found ? "Legajo " + legajo + " encontrado en el registro."
+                                 : "Legajo no encontrado en el registro.");
     }
 
-    // ── Consultas complejas ───────────────────────────────────────────────────
+    // ── Consultas complejas (delegadas a ConsultasService) ───────────────────
 
     public void puedesCursarMateria(int legajo, String codigoMateria) {
-        Student s = estudiantesDic.get(legajo);
-        if (s == null) { System.out.println("Estudiante no encontrado."); return; }
-        boolean materiaExiste = materiasBst.search(new Subject(codigoMateria, ""));
-        if (!materiaExiste) { System.out.println("Materia no encontrada en el sistema."); return; }
-        System.out.println("Estudiante: " + s);
-        System.out.println("Materia solicitada: " + codigoMateria);
-        System.out.println("(Para verificar correlativas ingrese la materia previa requerida)");
+        consultas.puedesCursarMateria(legajo, codigoMateria);
     }
+
+    public void caminoCorrelatividades(String origen, String destino) {
+        consultas.caminoCorrelatividades(origen, destino);
+    }
+
+    public void atenderYRegistrar() {
+        consultas.atenderYRegistrar();
+    }
+
+    public void deshacerYMostrarEstado() {
+        consultas.deshacerYMostrarEstado();
+    }
+
+    // ── Estado general ────────────────────────────────────────────────────────
 
     public void estadoGeneral() {
         System.out.println("=== ESTADO GENERAL DEL SISTEMA ===");
-        System.out.println("Estudiantes registrados (AVL, altura " + estudiantesAvl.getHeight() + "):");
-        estudiantesAvl.inOrder();
-        System.out.println("Materias registradas (BST):");
-        materiasBst.inOrder();
-        System.out.println("Legajos en Btree:");
-        registroBtree.inOrder();
+        System.out.println("Estudiantes registrados (nivel " + estudiantesAvl.obtenerAltura() + "):");
+        estudiantesAvl.enOrden();
+        System.out.println("Materias registradas:");
+        materiasBst.enOrden();
+        System.out.println("Legajos registrados:");
+        registroBtree.enOrden();
         estadoColas();
         System.out.println("Vertices en grafo de correlativas: " + correlatividades.getVertexCount());
     }
@@ -276,30 +306,25 @@ public class UniversitySystem {
 
     public void cargarDatosPrueba() {
         System.out.println("Cargando datos de prueba...");
-
         altaEstudiante(1001, "Ana Garcia");
         altaEstudiante(1002, "Bruno Lopez");
         altaEstudiante(1003, "Carla Perez");
         altaEstudiante(1004, "Diego Morales");
         altaEstudiante(1005, "Elena Torres");
-
         altaMateria("ALG1", "Algebra 1");
         altaMateria("MAT1", "Matematica 1");
         altaMateria("MAT2", "Matematica 2");
         altaMateria("PRG1", "Programacion 1");
         altaMateria("PRG2", "Programacion 2");
         altaMateria("EDA2", "Estructuras de Datos 2");
-
         asociarProfesor("MAT1", "Dr. Ramirez");
         asociarProfesor("PRG1", "Lic. Gomez");
         asociarProfesor("EDA2", "Dr. Fernandez");
-
         agregarCorrelatividad("MAT1", "MAT2");
         agregarCorrelatividad("ALG1", "MAT2");
         agregarCorrelatividad("PRG1", "PRG2");
         agregarCorrelatividad("PRG2", "EDA2");
         agregarCorrelatividad("MAT2", "EDA2");
-
         crearCarrera("Ingenieria en Sistemas");
         agregarAnio("Ingenieria en Sistemas", "1er Anio");
         agregarAnio("Ingenieria en Sistemas", "2do Anio");
@@ -310,7 +335,10 @@ public class UniversitySystem {
         agregarMateriaAAnio("2do Anio", "MAT2");
         agregarMateriaAAnio("2do Anio", "PRG2");
         agregarMateriaAAnio("3er Anio", "EDA2");
-
+        registrarAprobacion(1001, "ALG1");
+        registrarAprobacion(1001, "MAT1");
+        registrarAprobacion(1001, "PRG1");
+        registrarAprobacion(1002, "MAT1");
         System.out.println("Datos de prueba cargados.");
     }
 }

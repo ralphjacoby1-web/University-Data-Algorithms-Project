@@ -1,7 +1,7 @@
 package tda.interfaces;
 
 public interface IBtree {
-    void insert(int key);
-    boolean search(int key);
-    void inOrder();
+    void insertar(int clave);
+    boolean buscar(int clave);
+    void enOrden();
 }

@@ -4,108 +4,107 @@ import tda.interfaces.IBtree;
 
 public class Btree implements IBtree {
 
-    // minimum degree: each node holds T-1 to 2T-1 keys
     private static final int T = 2;
 
-    private BNode root;
+    private NodoB raiz;
 
-    private class BNode {
-        int[] keys;
-        BNode[] children;
-        int keyCount;
-        boolean isLeaf;
+    private class NodoB {
+        int[] claves;
+        NodoB[] hijos;
+        int cantClaves;
+        boolean esHoja;
 
-        BNode(boolean isLeaf) {
-            this.isLeaf = isLeaf;
-            this.keys = new int[2 * T - 1];
-            this.children = new BNode[2 * T];
-            this.keyCount = 0;
+        NodoB(boolean esHoja) {
+            this.esHoja = esHoja;
+            this.claves = new int[2 * T - 1];
+            this.hijos = new NodoB[2 * T];
+            this.cantClaves = 0;
         }
     }
 
     public Btree() {
-        root = new BNode(true);
+        raiz = new NodoB(true);
     }
 
     @Override
-    public boolean search(int key) {
-        return searchRec(root, key);
+    public boolean buscar(int clave) {
+        return buscarRec(raiz, clave);
     }
 
-    private boolean searchRec(BNode node, int key) {
+    private boolean buscarRec(NodoB nodo, int clave) {
         int i = 0;
-        while (i < node.keyCount && key > node.keys[i]) i++;
-        if (i < node.keyCount && key == node.keys[i]) return true;
-        if (node.isLeaf) return false;
-        return searchRec(node.children[i], key);
+        while (i < nodo.cantClaves && clave > nodo.claves[i]) i++;
+        if (i < nodo.cantClaves && clave == nodo.claves[i]) return true;
+        if (nodo.esHoja) return false;
+        return buscarRec(nodo.hijos[i], clave);
     }
 
     @Override
-    public void insert(int key) {
-        BNode r = root;
-        if (r.keyCount == 2 * T - 1) {
-            BNode s = new BNode(false);
-            root = s;
-            s.children[0] = r;
-            splitChild(s, 0, r);
-            insertNonFull(s, key);
+    public void insertar(int clave) {
+        NodoB r = raiz;
+        if (r.cantClaves == 2 * T - 1) {
+            NodoB s = new NodoB(false);
+            raiz = s;
+            s.hijos[0] = r;
+            dividirHijo(s, 0, r);
+            insertarEnNodoNoLleno(s, clave);
         } else {
-            insertNonFull(r, key);
+            insertarEnNodoNoLleno(r, clave);
         }
     }
 
-    private void insertNonFull(BNode node, int key) {
-        int i = node.keyCount - 1;
-        if (node.isLeaf) {
-            while (i >= 0 && key < node.keys[i]) {
-                node.keys[i + 1] = node.keys[i];
+    private void insertarEnNodoNoLleno(NodoB nodo, int clave) {
+        int i = nodo.cantClaves - 1;
+        if (nodo.esHoja) {
+            while (i >= 0 && clave < nodo.claves[i]) {
+                nodo.claves[i + 1] = nodo.claves[i];
                 i--;
             }
-            node.keys[i + 1] = key;
-            node.keyCount++;
+            nodo.claves[i + 1] = clave;
+            nodo.cantClaves++;
         } else {
-            while (i >= 0 && key < node.keys[i]) i--;
+            while (i >= 0 && clave < nodo.claves[i]) i--;
             i++;
-            if (node.children[i].keyCount == 2 * T - 1) {
-                splitChild(node, i, node.children[i]);
-                if (key > node.keys[i]) i++;
+            if (nodo.hijos[i].cantClaves == 2 * T - 1) {
+                dividirHijo(nodo, i, nodo.hijos[i]);
+                if (clave > nodo.claves[i]) i++;
             }
-            insertNonFull(node.children[i], key);
+            insertarEnNodoNoLleno(nodo.hijos[i], clave);
         }
     }
 
-    private void splitChild(BNode parent, int i, BNode child) {
-        BNode newNode = new BNode(child.isLeaf);
-        newNode.keyCount = T - 1;
+    private void dividirHijo(NodoB padre, int i, NodoB hijo) {
+        NodoB nuevoNodo = new NodoB(hijo.esHoja);
+        nuevoNodo.cantClaves = T - 1;
         for (int j = 0; j < T - 1; j++)
-            newNode.keys[j] = child.keys[j + T];
-        if (!child.isLeaf) {
+            nuevoNodo.claves[j] = hijo.claves[j + T];
+        if (!hijo.esHoja) {
             for (int j = 0; j < T; j++)
-                newNode.children[j] = child.children[j + T];
+                nuevoNodo.hijos[j] = hijo.hijos[j + T];
         }
-        child.keyCount = T - 1;
-        for (int j = parent.keyCount; j >= i + 1; j--)
-            parent.children[j + 1] = parent.children[j];
-        parent.children[i + 1] = newNode;
-        for (int j = parent.keyCount - 1; j >= i; j--)
-            parent.keys[j + 1] = parent.keys[j];
-        parent.keys[i] = child.keys[T - 1];
-        parent.keyCount++;
+        hijo.cantClaves = T - 1;
+        for (int j = padre.cantClaves; j >= i + 1; j--)
+            padre.hijos[j + 1] = padre.hijos[j];
+        padre.hijos[i + 1] = nuevoNodo;
+        for (int j = padre.cantClaves - 1; j >= i; j--)
+            padre.claves[j + 1] = padre.claves[j];
+        padre.claves[i] = hijo.claves[T - 1];
+        padre.cantClaves++;
     }
 
     @Override
-    public void inOrder() {
-        inOrderRec(root);
+    public void enOrden() {
+        enOrdenRec(raiz);
         System.out.println();
     }
 
-    private void inOrderRec(BNode node) {
-        if (node == null) return;
+    private void enOrdenRec(NodoB nodo) {
+        if (nodo == null) return;
         int i;
-        for (i = 0; i < node.keyCount; i++) {
-            if (!node.isLeaf) inOrderRec(node.children[i]);
-            System.out.print(node.keys[i] + "  ");
+        for (i = 0; i < nodo.cantClaves; i++) {
+            if (!nodo.esHoja) enOrdenRec(nodo.hijos[i]);
+            System.out.print(nodo.claves[i] + "  ");
         }
-        if (!node.isLeaf) inOrderRec(node.children[i]);
+        if (!nodo.esHoja) enOrdenRec(nodo.hijos[i]);
     }
 }

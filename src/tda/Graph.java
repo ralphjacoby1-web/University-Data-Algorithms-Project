@@ -93,5 +93,72 @@ public class Graph implements IGraph {
         return false;
     }
 
+    // Devuelve todos los vertices que son prerequisito (directo o transitivo) de 'destino'.
+    // Usa BFS inverso: recorre las aristas al reves desde 'destino'.
+    public String[] prerequisitosTransitivos(String destino) {
+        int d = indexOf(destino);
+        if (d == -1) return new String[0];
+        boolean[] alcanzable = new boolean[vertexCount];
+        Queue<Integer> cola = new Queue<>();
+        alcanzable[d] = true;
+        cola.enqueue(d);
+        while (!cola.isEmpty()) {
+            int v = cola.dequeue();
+            for (int i = 0; i < vertexCount; i++) {
+                if (adjMatrix[i][v] && !alcanzable[i]) { // arista i->v: i es prerequisito de v
+                    alcanzable[i] = true;
+                    cola.enqueue(i);
+                }
+            }
+        }
+        int count = 0;
+        for (int i = 0; i < vertexCount; i++)
+            if (alcanzable[i] && i != d) count++;
+        String[] resultado = new String[count];
+        int idx = 0;
+        for (int i = 0; i < vertexCount; i++)
+            if (alcanzable[i] && i != d) resultado[idx++] = vertices[i];
+        return resultado;
+    }
+
+    // Devuelve el camino mas corto (BFS) de 'origen' a 'destino'.
+    // Usa Queue para BFS y Stack para reconstruir el camino.
+    // Retorna arreglo vacio si no existe camino.
+    public String[] caminoBFS(String origen, String destino) {
+        int s = indexOf(origen), t = indexOf(destino);
+        if (s == -1 || t == -1) return new String[0];
+        if (s == t) return new String[]{vertices[s]};
+        boolean[] visited = new boolean[vertexCount];
+        int[] padre = new int[vertexCount];
+        for (int i = 0; i < vertexCount; i++) padre[i] = -1;
+        Queue<Integer> cola = new Queue<>();
+        visited[s] = true;
+        cola.enqueue(s);
+        boolean encontrado = false;
+        while (!cola.isEmpty() && !encontrado) {
+            int v = cola.dequeue();
+            for (int i = 0; i < vertexCount; i++) {
+                if (adjMatrix[v][i] && !visited[i]) {
+                    visited[i] = true;
+                    padre[i] = v;
+                    if (i == t) { encontrado = true; break; }
+                    cola.enqueue(i);
+                }
+            }
+        }
+        if (!encontrado) return new String[0];
+        // Reconstruir camino con Stack
+        Stack<String> pila = new Stack<>();
+        int actual = t;
+        while (actual != -1) {
+            pila.push(vertices[actual]);
+            actual = padre[actual];
+        }
+        String[] camino = new String[pila.size()];
+        int i = 0;
+        while (!pila.isEmpty()) camino[i++] = pila.pop();
+        return camino;
+    }
+
     public int getVertexCount() { return vertexCount; }
 }

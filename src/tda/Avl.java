@@ -4,159 +4,159 @@ import tda.interfaces.IAvl;
 
 public class Avl<T extends Comparable<T>> implements IAvl<T> {
 
-    private Node root;
+    private Nodo raiz;
 
-    private class Node {
-        T element;
-        Node left, right;
-        int height;
+    private class Nodo {
+        T elemento;
+        Nodo izquierda, derecha;
+        int altura;
 
-        Node(T element) {
-            this.element = element;
-            this.height = 1;
+        Nodo(T elemento) {
+            this.elemento = elemento;
+            this.altura = 1;
         }
     }
 
-    private int height(Node node) {
-        return node == null ? 0 : node.height;
+    private int altura(Nodo nodo) {
+        return nodo == null ? 0 : nodo.altura;
     }
 
-    private void updateHeight(Node node) {
-        node.height = 1 + Math.max(height(node.left), height(node.right));
+    private void actualizarAltura(Nodo nodo) {
+        nodo.altura = 1 + Math.max(altura(nodo.izquierda), altura(nodo.derecha));
     }
 
-    private int balanceFactor(Node node) {
-        return node == null ? 0 : height(node.left) - height(node.right);
+    private int factorBalance(Nodo nodo) {
+        return nodo == null ? 0 : altura(nodo.izquierda) - altura(nodo.derecha);
     }
 
-    private Node rotateRight(Node y) {
-        Node x = y.left;
-        Node t = x.right;
-        x.right = y;
-        y.left = t;
-        updateHeight(y);
-        updateHeight(x);
+    private Nodo rotarDerecha(Nodo y) {
+        Nodo x = y.izquierda;
+        Nodo t = x.derecha;
+        x.derecha = y;
+        y.izquierda = t;
+        actualizarAltura(y);
+        actualizarAltura(x);
         return x;
     }
 
-    private Node rotateLeft(Node x) {
-        Node y = x.right;
-        Node t = y.left;
-        y.left = x;
-        x.right = t;
-        updateHeight(x);
-        updateHeight(y);
+    private Nodo rotarIzquierda(Nodo x) {
+        Nodo y = x.derecha;
+        Nodo t = y.izquierda;
+        y.izquierda = x;
+        x.derecha = t;
+        actualizarAltura(x);
+        actualizarAltura(y);
         return y;
     }
 
-    private Node rebalance(Node node) {
-        updateHeight(node);
-        int bf = balanceFactor(node);
-        if (bf > 1) {
-            if (balanceFactor(node.left) < 0)
-                node.left = rotateLeft(node.left);
-            return rotateRight(node);
+    private Nodo rebalancear(Nodo nodo) {
+        actualizarAltura(nodo);
+        int fb = factorBalance(nodo);
+        if (fb > 1) {
+            if (factorBalance(nodo.izquierda) < 0)
+                nodo.izquierda = rotarIzquierda(nodo.izquierda);
+            return rotarDerecha(nodo);
         }
-        if (bf < -1) {
-            if (balanceFactor(node.right) > 0)
-                node.right = rotateRight(node.right);
-            return rotateLeft(node);
+        if (fb < -1) {
+            if (factorBalance(nodo.derecha) > 0)
+                nodo.derecha = rotarDerecha(nodo.derecha);
+            return rotarIzquierda(nodo);
         }
-        return node;
+        return nodo;
     }
 
     @Override
-    public void insert(T element) {
-        if (element == null) throw new IllegalArgumentException();
-        root = insertRec(root, element);
+    public void insertar(T elemento) {
+        if (elemento == null) throw new IllegalArgumentException();
+        raiz = insertarRec(raiz, elemento);
     }
 
-    private Node insertRec(Node node, T element) {
-        if (node == null) return new Node(element);
-        int cmp = element.compareTo(node.element);
-        if (cmp < 0) node.left = insertRec(node.left, element);
-        else if (cmp > 0) node.right = insertRec(node.right, element);
-        else return node;
-        return rebalance(node);
+    private Nodo insertarRec(Nodo nodo, T elemento) {
+        if (nodo == null) return new Nodo(elemento);
+        int cmp = elemento.compareTo(nodo.elemento);
+        if (cmp < 0) nodo.izquierda = insertarRec(nodo.izquierda, elemento);
+        else if (cmp > 0) nodo.derecha = insertarRec(nodo.derecha, elemento);
+        else return nodo;
+        return rebalancear(nodo);
     }
 
     @Override
-    public void delete(T element) {
-        root = deleteRec(root, element);
+    public void eliminar(T elemento) {
+        raiz = eliminarRec(raiz, elemento);
     }
 
-    private Node deleteRec(Node node, T element) {
-        if (node == null) return null;
-        int cmp = element.compareTo(node.element);
-        if (cmp < 0) node.left = deleteRec(node.left, element);
-        else if (cmp > 0) node.right = deleteRec(node.right, element);
+    private Nodo eliminarRec(Nodo nodo, T elemento) {
+        if (nodo == null) return null;
+        int cmp = elemento.compareTo(nodo.elemento);
+        if (cmp < 0) nodo.izquierda = eliminarRec(nodo.izquierda, elemento);
+        else if (cmp > 0) nodo.derecha = eliminarRec(nodo.derecha, elemento);
         else {
-            if (node.left == null) return node.right;
-            if (node.right == null) return node.left;
-            Node successor = minNode(node.right);
-            node.element = successor.element;
-            node.right = deleteRec(node.right, successor.element);
+            if (nodo.izquierda == null) return nodo.derecha;
+            if (nodo.derecha == null) return nodo.izquierda;
+            Nodo sucesor = nodoMinimo(nodo.derecha);
+            nodo.elemento = sucesor.elemento;
+            nodo.derecha = eliminarRec(nodo.derecha, sucesor.elemento);
         }
-        return rebalance(node);
+        return rebalancear(nodo);
     }
 
     @Override
-    public boolean search(T element) {
-        return searchRec(root, element);
+    public boolean buscar(T elemento) {
+        return buscarRec(raiz, elemento);
     }
 
-    private boolean searchRec(Node node, T element) {
-        if (node == null) return false;
-        int cmp = element.compareTo(node.element);
+    private boolean buscarRec(Nodo nodo, T elemento) {
+        if (nodo == null) return false;
+        int cmp = elemento.compareTo(nodo.elemento);
         if (cmp == 0) return true;
-        return cmp < 0 ? searchRec(node.left, element) : searchRec(node.right, element);
+        return cmp < 0 ? buscarRec(nodo.izquierda, elemento) : buscarRec(nodo.derecha, elemento);
     }
 
     @Override
-    public void inOrder() {
-        inOrderRec(root);
+    public void enOrden() {
+        enOrdenRec(raiz);
         System.out.println();
     }
 
-    private void inOrderRec(Node node) {
-        if (node == null) return;
-        inOrderRec(node.left);
-        System.out.print(node.element + "  ");
-        inOrderRec(node.right);
+    private void enOrdenRec(Nodo nodo) {
+        if (nodo == null) return;
+        enOrdenRec(nodo.izquierda);
+        System.out.print(nodo.elemento + "  ");
+        enOrdenRec(nodo.derecha);
     }
 
     @Override
     public T max() {
-        if (root == null) return null;
-        Node n = root;
-        while (n.right != null) n = n.right;
-        return n.element;
+        if (raiz == null) return null;
+        Nodo n = raiz;
+        while (n.derecha != null) n = n.derecha;
+        return n.elemento;
     }
 
     @Override
     public T min() {
-        if (root == null) return null;
-        return minNode(root).element;
+        if (raiz == null) return null;
+        return nodoMinimo(raiz).elemento;
     }
 
-    private Node minNode(Node node) {
-        while (node.left != null) node = node.left;
-        return node;
+    private Nodo nodoMinimo(Nodo nodo) {
+        while (nodo.izquierda != null) nodo = nodo.izquierda;
+        return nodo;
     }
 
-    public int getHeight() {
-        return height(root);
+    public int obtenerAltura() {
+        return altura(raiz);
     }
 
-    public int getBalanceFactor(T element) {
-        Node node = findNode(root, element);
-        return node == null ? 0 : balanceFactor(node);
+    public int obtenerFactorBalance(T elemento) {
+        Nodo nodo = encontrarNodo(raiz, elemento);
+        return nodo == null ? 0 : factorBalance(nodo);
     }
 
-    private Node findNode(Node node, T element) {
-        if (node == null) return null;
-        int cmp = element.compareTo(node.element);
-        if (cmp == 0) return node;
-        return cmp < 0 ? findNode(node.left, element) : findNode(node.right, element);
+    private Nodo encontrarNodo(Nodo nodo, T elemento) {
+        if (nodo == null) return null;
+        int cmp = elemento.compareTo(nodo.elemento);
+        if (cmp == 0) return nodo;
+        return cmp < 0 ? encontrarNodo(nodo.izquierda, elemento) : encontrarNodo(nodo.derecha, elemento);
     }
 }
