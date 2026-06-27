@@ -126,7 +126,7 @@ public class Avl<T extends Comparable<T>> implements IAvl<T> {
     }
 
     @Override
-    public T max() {
+    public T maximo() {
         if (raiz == null) return null;
         Nodo n = raiz;
         while (n.derecha != null) n = n.derecha;
@@ -134,7 +134,7 @@ public class Avl<T extends Comparable<T>> implements IAvl<T> {
     }
 
     @Override
-    public T min() {
+    public T minimo() {
         if (raiz == null) return null;
         return nodoMinimo(raiz).elemento;
     }

@@ -5,26 +5,26 @@ import tda.*;
 
 public class ConsultasService {
 
-    private final Dictionary<Integer, Student> estudiantesDic;
-    private final Bst<Subject>                 materiasBst;
-    private final Dictionary<String, Subject>  materiasDic;
-    private final Graph                        correlatividades;
-    private final PriorityQueue<Student>       colaPrioritaria;
-    private final Stack<Operation>             historial;
-    private final Avl<Student>                 estudiantesAvl;
-    private final Btree                        registroBtree;
-    // Set de alumnos ya atendidos por esta consulta; evita duplicados entre llamadas
-    private final Dictionary<Integer, Boolean> yaAtendidos;
+    private final Diccionario<Integer, Student> estudiantesDic;
+    private final Abb<Subject>                  materiasBst;
+    private final Diccionario<String, Subject>  materiasDic;
+    private final Grafo                         correlatividades;
+    private final ColaPrioridad<Student>        colaPrioritaria;
+    private final Pila<Operation>               historial;
+    private final Avl<Student>                  estudiantesAvl;
+    private final ArbolB                        registroBtree;
+    // Set de alumnos ya atendidos; evita duplicados entre llamadas
+    private final Diccionario<Integer, Boolean> yaAtendidos;
 
     public ConsultasService(
-            Dictionary<Integer, Student> estudiantesDic,
-            Bst<Subject> materiasBst,
-            Dictionary<String, Subject> materiasDic,
-            Graph correlatividades,
-            PriorityQueue<Student> colaPrioritaria,
-            Stack<Operation> historial,
+            Diccionario<Integer, Student> estudiantesDic,
+            Abb<Subject> materiasBst,
+            Diccionario<String, Subject> materiasDic,
+            Grafo correlatividades,
+            ColaPrioridad<Student> colaPrioritaria,
+            Pila<Operation> historial,
             Avl<Student> estudiantesAvl,
-            Btree registroBtree) {
+            ArbolB registroBtree) {
         this.estudiantesDic  = estudiantesDic;
         this.materiasBst     = materiasBst;
         this.materiasDic     = materiasDic;
@@ -33,119 +33,119 @@ public class ConsultasService {
         this.historial        = historial;
         this.estudiantesAvl   = estudiantesAvl;
         this.registroBtree    = registroBtree;
-        this.yaAtendidos      = new Dictionary<>();
+        this.yaAtendidos      = new Diccionario<>();
     }
 
-    // Dictionary + Bst + Graph (BFS inverso sobre correlativas) + Dictionary interno de Student
+    // Diccionario + Abb + Grafo (BFS inverso sobre correlativas) + Diccionario interno de Student
     public void puedesCursarMateria(int legajo, String codigoMateria) {
-        Student s = estudiantesDic.get(legajo);
+        Student s = estudiantesDic.obtener(legajo);
         if (s == null) { System.out.println("Estudiante no encontrado."); return; }
         if (!materiasBst.buscar(new Subject(codigoMateria, ""))) {
             System.out.println("Materia no encontrada en el sistema.");
             return;
         }
         System.out.println("=== Consulta: puede cursar? ===");
-        System.out.println("[Dictionary] Estudiante  : " + s);
-        System.out.println("[Bst]        Materia     : " + codigoMateria);
+        System.out.println("[Diccionario] Estudiante  : " + s);
+        System.out.println("[Abb]         Materia     : " + codigoMateria);
         String[] prereqs = correlatividades.prerequisitosTransitivos(codigoMateria);
-        System.out.println("[Graph]      Correlativas requeridas (" + prereqs.length + "):");
-        Stack<String> faltantes = new Stack<>();
+        System.out.println("[Grafo]       Correlativas requeridas (" + prereqs.length + "):");
+        Pila<String> faltantes = new Pila<>();
         for (String prereq : prereqs) {
             boolean aprobada = s.tieneAprobada(prereq);
             System.out.println("  - " + prereq + ": " + (aprobada ? "APROBADA" : "PENDIENTE"));
-            if (!aprobada) faltantes.push(prereq);
+            if (!aprobada) faltantes.apilar(prereq);
         }
-        if (faltantes.isEmpty()) {
+        if (faltantes.estaVacia()) {
             System.out.println(">>> PUEDE CURSAR " + codigoMateria);
         } else {
             System.out.println(">>> NO PUEDE CURSAR " + codigoMateria);
             System.out.print("    Correlativas faltantes: ");
-            while (!faltantes.isEmpty()) System.out.print(faltantes.pop() + "  ");
+            while (!faltantes.estaVacia()) System.out.print(faltantes.desapilar() + "  ");
             System.out.println();
         }
     }
 
-    // Graph (caminoBFS usa Queue + Stack internamente) + Bst (verificar existencia) + Dictionary (nombre completo)
+    // Grafo (caminoAmplitud usa Cola + Pila internamente) + Abb (verificar existencia) + Diccionario (nombre completo)
     public void caminoCorrelatividades(String origen, String destino) {
         System.out.println("=== Consulta: camino de correlatividades ===");
-        System.out.println("[Graph + Queue + Stack] Buscando camino (BFS) de "
+        System.out.println("[Grafo + Cola + Pila] Buscando camino (BFS) de "
                 + origen + " a " + destino + "...");
-        String[] camino = correlatividades.caminoBFS(origen, destino);
+        String[] camino = correlatividades.caminoAmplitud(origen, destino);
         if (camino.length == 0) {
             System.out.println("No existe camino de correlatividades entre " + origen + " y " + destino);
             return;
         }
-        System.out.println("[Graph] Camino encontrado (" + camino.length + " materias):");
+        System.out.println("[Grafo] Camino encontrado (" + camino.length + " materias):");
         for (int i = 0; i < camino.length; i++) {
             String codigo = camino[i];
-            boolean enBst = materiasBst.buscar(new Subject(codigo, ""));
-            Subject sub   = materiasDic.get(codigo);
+            boolean enAbb = materiasBst.buscar(new Subject(codigo, ""));
+            Subject sub   = materiasDic.obtener(codigo);
             String nombre = (sub != null) ? sub.getNombre() : "(sin datos)";
             String flecha = (i < camino.length - 1) ? " --> " : "";
             System.out.println("  [" + (i + 1) + "] " + codigo
                     + " (" + nombre + ")"
-                    + (enBst ? " [en Bst]" : " [no en Bst]")
+                    + (enAbb ? " [en Abb]" : " [no en Abb]")
                     + flecha);
         }
     }
 
-    // PriorityQueue + Dictionary (datos del alumno) + Dictionary (yaAtendidos, antiduplic) + Stack (historial)
+    // ColaPrioridad + Diccionario (datos del alumno) + Diccionario (yaAtendidos, antiduplic) + Pila (historial)
     public void atenderYRegistrar() {
         System.out.println("=== Consulta: atender alumno prioritario y registrar ===");
         if (colaPrioritaria.estaVacio()) {
-            System.out.println("[PriorityQueue] Cola prioritaria vacia.");
+            System.out.println("[ColaPrioridad] Cola prioritaria vacia.");
             return;
         }
         Student extraido = colaPrioritaria.desencolar();
-        System.out.println("[PriorityQueue] Alumno extraido: " + extraido);
-        Student completo = estudiantesDic.get(extraido.getLegajo());
+        System.out.println("[ColaPrioridad] Alumno extraido: " + extraido);
+        Student completo = estudiantesDic.obtener(extraido.getLegajo());
         if (completo == null) {
-            System.out.println("[Dictionary] Advertencia: el alumno ya no esta en el sistema.");
+            System.out.println("[Diccionario] Advertencia: el alumno ya no esta en el sistema.");
             return;
         }
-        System.out.println("[Dictionary]    Datos completos: " + completo);
-        if (yaAtendidos.containsKey(completo.getLegajo())) {
-            System.out.println("[Dictionary] Atencion: este alumno ya fue atendido anteriormente.");
+        System.out.println("[Diccionario]   Datos completos: " + completo);
+        if (yaAtendidos.contieneClave(completo.getLegajo())) {
+            System.out.println("[Diccionario] Atencion: este alumno ya fue atendido anteriormente.");
         } else {
-            yaAtendidos.put(completo.getLegajo(), true);
-            System.out.println("[Dictionary] Alumno registrado como atendido.");
+            yaAtendidos.poner(completo.getLegajo(), true);
+            System.out.println("[Diccionario] Alumno registrado como atendido.");
         }
-        historial.push(new Operation("ATENCION_PRIORITARIA_REG", "Legajo: " + completo.getLegajo()));
+        historial.apilar(new Operation("ATENCION_PRIORITARIA_REG", "Legajo: " + completo.getLegajo()));
         System.out.println(">>> Atencion completada: " + completo);
     }
 
-    // Stack (historial) + Avl + Bst + Btree: desapila la ultima operacion y muestra el estado de los tres indices
+    // Pila (historial) + Avl + Abb + ArbolB: desapila la ultima operacion y muestra el estado de los tres indices
     public void deshacerYMostrarEstado() {
         System.out.println("=== Consulta: deshacer ultima operacion y ver estado de indices ===");
-        if (historial.isEmpty()) {
-            System.out.println("[Stack] No hay operaciones en el historial.");
+        if (historial.estaVacia()) {
+            System.out.println("[Pila] No hay operaciones en el historial.");
             return;
         }
-        Operation op = historial.pop();
-        System.out.println("[Stack] Operacion deshecha: " + op);
+        Operation op = historial.desapilar();
+        System.out.println("[Pila] Operacion deshecha: " + op);
         String tipo = op.getTipo();
         System.out.println("Indices afectados y su estado actual:");
         if (tipo.contains("ESTUDIANTE") || tipo.equals("APROBACION")) {
-            System.out.print("[Avl]   Estudiantes en orden: ");
+            System.out.print("[Avl]    Estudiantes en orden: ");
             estudiantesAvl.enOrden();
-            System.out.println("[Avl]   Nivel de organizacion: " + estudiantesAvl.obtenerAltura());
-            System.out.print("[Btree] Legajos registrados  : ");
+            System.out.println("[Avl]    Nivel de organizacion: " + estudiantesAvl.obtenerAltura());
+            System.out.print("[ArbolB] Legajos registrados  : ");
             registroBtree.enOrden();
         }
         if (tipo.contains("MATERIA") || tipo.equals("ASOCIAR_PROFESOR")) {
-            System.out.print("[Bst]   Materias en orden    : ");
+            System.out.print("[Abb]    Materias en orden    : ");
             materiasBst.enOrden();
         }
         if (tipo.contains("CORRELATIVIDAD")) {
-            System.out.println("[Graph] Vertices en el grafo de correlativas: "
-                    + correlatividades.getVertexCount());
+            System.out.println("[Grafo]  Vertices en el grafo de correlativas: "
+                    + correlatividades.cantidadVertices());
         }
-        System.out.println("--- Resumen post-operacion [Avl + Bst + Btree] ---");
-        System.out.print("[Avl]   : ");
+        System.out.println("--- Resumen post-operacion [Avl + Abb + ArbolB] ---");
+        System.out.print("[Avl]    : ");
         estudiantesAvl.enOrden();
-        System.out.print("[Bst]   : ");
+        System.out.print("[Abb]    : ");
         materiasBst.enOrden();
-        System.out.print("[Btree] : ");
+        System.out.print("[ArbolB] : ");
         registroBtree.enOrden();
     }
 }

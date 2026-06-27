@@ -1,6 +1,6 @@
 package tda.interfaces;
 
-public interface IBtree {
+public interface IArbolB {
     void insertar(int clave);
     boolean buscar(int clave);
     void enOrden();

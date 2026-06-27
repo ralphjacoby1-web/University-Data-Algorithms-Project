@@ -1,8 +1,8 @@
 package tda;
 
-import tda.interfaces.IBtree;
+import tda.interfaces.IArbolB;
 
-public class Btree implements IBtree {
+public class ArbolB implements IArbolB {
 
     private static final int T = 2;
 
@@ -22,7 +22,7 @@ public class Btree implements IBtree {
         }
     }
 
-    public Btree() {
+    public ArbolB() {
         raiz = new NodoB(true);
     }
 
@@ -78,10 +78,9 @@ public class Btree implements IBtree {
         nuevoNodo.cantClaves = T - 1;
         for (int j = 0; j < T - 1; j++)
             nuevoNodo.claves[j] = hijo.claves[j + T];
-        if (!hijo.esHoja) {
+        if (!hijo.esHoja)
             for (int j = 0; j < T; j++)
                 nuevoNodo.hijos[j] = hijo.hijos[j + T];
-        }
         hijo.cantClaves = T - 1;
         for (int j = padre.cantClaves; j >= i + 1; j--)
             padre.hijos[j + 1] = padre.hijos[j];

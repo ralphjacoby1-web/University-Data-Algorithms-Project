@@ -1,72 +1,53 @@
 package tda;
 
-import tda.interfaces.IPriorityQueue;
+import tda.interfaces.IColaPrioridad;
 
-public class PriorityQueue<T> implements IPriorityQueue<T> {
+public class ColaPrioridad<T> implements IColaPrioridad<T> {
 
     private static class NodoPrioridad<T> {
-
         T elemento;
         int prioridad;
         NodoPrioridad<T> siguiente;
 
-        public NodoPrioridad(T dato, int prioridad) {
-
-            this.elemento = dato;
+        NodoPrioridad(T elemento, int prioridad) {
+            this.elemento = elemento;
             this.prioridad = prioridad;
             this.siguiente = null;
-
         }
-
     }
 
     private NodoPrioridad<T> frente;
     private int tamanio;
 
-    public PriorityQueue() {
-
+    public ColaPrioridad() {
         this.frente = null;
         this.tamanio = 0;
-
     }
 
     @Override
     public void encolar(T elemento, int prioridad) {
-        if (elemento == null || prioridad <= 0) { return; }
-
+        if (elemento == null || prioridad <= 0) return;
         NodoPrioridad<T> nuevoNodo = new NodoPrioridad<>(elemento, prioridad);
-
         if (frente == null || prioridad > frente.prioridad) {
-
             nuevoNodo.siguiente = frente;
             frente = nuevoNodo;
-
         } else {
-
-            NodoPrioridad<T> nodoActual = frente;
-
-            while (nodoActual.siguiente != null && nodoActual.siguiente.prioridad >= prioridad) {
-                nodoActual = nodoActual.siguiente;
-            }
-
-            nuevoNodo.siguiente = nodoActual.siguiente;
-            nodoActual.siguiente = nuevoNodo;
-
+            NodoPrioridad<T> actual = frente;
+            while (actual.siguiente != null && actual.siguiente.prioridad >= prioridad)
+                actual = actual.siguiente;
+            nuevoNodo.siguiente = actual.siguiente;
+            actual.siguiente = nuevoNodo;
         }
-
         tamanio++;
     }
 
     @Override
     public T desencolar() {
-
-        if (estaVacio()) { return null; }
-
-        T elementoRetornar = frente.elemento;
+        if (estaVacio()) return null;
+        T elemento = frente.elemento;
         frente = frente.siguiente;
         tamanio--;
-
-        return elementoRetornar;
+        return elemento;
     }
 
     @Override
@@ -83,5 +64,4 @@ public class PriorityQueue<T> implements IPriorityQueue<T> {
     public boolean estaVacio() {
         return frente == null;
     }
-
 }

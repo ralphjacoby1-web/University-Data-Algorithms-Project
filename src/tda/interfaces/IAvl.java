@@ -5,6 +5,6 @@ public interface IAvl<T extends Comparable<T>> {
     void eliminar(T elemento);
     boolean buscar(T elemento);
     void enOrden();
-    T max();
-    T min();
+    T maximo();
+    T minimo();
 }

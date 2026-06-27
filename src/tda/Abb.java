@@ -1,8 +1,8 @@
 package tda;
 
-import tda.interfaces.IBst;
+import tda.interfaces.IAbb;
 
-public class Bst<T extends Comparable<T>> implements IBst<T> {
+public class Abb<T extends Comparable<T>> implements IAbb<T> {
 
     private Nodo raiz;
 
@@ -75,7 +75,7 @@ public class Bst<T extends Comparable<T>> implements IBst<T> {
     }
 
     @Override
-    public T max() {
+    public T maximo() {
         if (raiz == null) return null;
         Nodo n = raiz;
         while (n.derecha != null) n = n.derecha;
@@ -83,7 +83,7 @@ public class Bst<T extends Comparable<T>> implements IBst<T> {
     }
 
     @Override
-    public T min() {
+    public T minimo() {
         if (raiz == null) return null;
         return nodoMinimo(raiz).elemento;
     }
