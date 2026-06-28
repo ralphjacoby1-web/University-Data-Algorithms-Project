@@ -75,4 +75,9 @@ public class ArbolGenerico<T> implements IArbolGenerico<T> {
         }
         System.out.println();
     }
+
+    @Override
+    public boolean estaVacio() {
+        return raiz == null;
+    }
 }

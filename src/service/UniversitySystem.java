@@ -139,7 +139,8 @@ public class UniversitySystem {
     // ── Estructura academica ─────────────────────────────────────────────────
 
     public void crearCarrera(String nombre) {
-        estructuraAcademica.agregarRaiz(nombre);
+        if (estructuraAcademica.estaVacio()) { estructuraAcademica.agregarRaiz("Estructura Académica"); }
+        estructuraAcademica.agregarHijo("Estructura Académica", nombre);
         System.out.println("Carrera creada: " + nombre);
     }
 
@@ -326,15 +327,15 @@ public class UniversitySystem {
         agregarCorrelatividad("PRG2", "EDA2");
         agregarCorrelatividad("MAT2", "EDA2");
         crearCarrera("Ingenieria en Sistemas");
-        agregarAnio("Ingenieria en Sistemas", "1er Anio");
-        agregarAnio("Ingenieria en Sistemas", "2do Anio");
-        agregarAnio("Ingenieria en Sistemas", "3er Anio");
-        agregarMateriaAAnio("1er Anio", "ALG1");
-        agregarMateriaAAnio("1er Anio", "MAT1");
-        agregarMateriaAAnio("1er Anio", "PRG1");
-        agregarMateriaAAnio("2do Anio", "MAT2");
-        agregarMateriaAAnio("2do Anio", "PRG2");
-        agregarMateriaAAnio("3er Anio", "EDA2");
+        agregarAnio("Ingenieria en Sistemas", "1er Anio Ing. Sist");
+        agregarAnio("Ingenieria en Sistemas", "2do Anio Ing. Sist");
+        agregarAnio("Ingenieria en Sistemas", "3er Anio Ing. Sist");
+        agregarMateriaAAnio("1er Anio Ing. Sist", "ALG1");
+        agregarMateriaAAnio("1er Anio Ing. Sist", "MAT1");
+        agregarMateriaAAnio("1er Anio Ing. Sist", "PRG1");
+        agregarMateriaAAnio("2do Anio Ing. Sist", "MAT2");
+        agregarMateriaAAnio("2do Anio Ing. Sist", "PRG2");
+        agregarMateriaAAnio("3er Anio Ing. Sist", "EDA2");
         registrarAprobacion(1001, "ALG1");
         registrarAprobacion(1001, "MAT1");
         registrarAprobacion(1001, "PRG1");
