@@ -4,6 +4,8 @@ Trabajo Práctico Integrador de **Estructuras de Datos**. Aplicación de consola
 
 **Grupo 67** — Alexis Muñoz · Martín Stöckl · Luciano Domínguez · Ralph Jacoby
 
+![Demo](docs/demo.gif)
+
 ---
 
 ## Descripción
